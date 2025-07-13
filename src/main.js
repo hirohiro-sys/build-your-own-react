@@ -4,7 +4,7 @@ function createElement(type, props, ...children) {
     props: {
       ...props,
       children: children.map((child) =>
-        // TODO: なぜテキストをオブジェクトに変換する必要がある？
+        // 要素ツリー内の全てのノード(HTML、テキスト)を同じデータ構造(オブジェクト)で統一的に扱うため
         typeof child === "object" ? child : createTextElement(child)
       ),
     },
@@ -21,11 +21,11 @@ function createTextElement(text) {
   };
 }
 
-function render(element, container) {
+function createDom(fiber) {
   const dom =
-    element.type === "TEXT_ELEMENT"
-      ? document.createTextNode(element.props.nodeValue)
-      : document.createElement(element.type);
+    fiber.type === "TEXT_ELEMENT"
+      ? document.createTextNode(fiber.props.nodeValue)
+      : document.createElement(fiber.type);
 
   Object.keys(element.props)
     .filter((key) => key !== "children")
@@ -40,36 +40,75 @@ function render(element, container) {
   container.appendChild(dom);
 }
 
+let nextUnitOfWork = null;
+function render(element, container) {
+  nextUnitOfWork = {
+    dom: container,
+    props: {
+      children: [element],
+    },
+  };
+}
+
+function workLoop(deadline) {
+  let shouldYield = false;
+  // 次の作業があり、時間が残っている限り作業を続ける
+  while (nextUnitOfWork && !shouldYield) {
+    nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
+    shouldYield = deadline.timeRemaining() < 1;
+  }
+  // 作業が終わったら次の作業をスケジュールする
+  requestIdleCallback(workLoop);
+}
+
+function performUnitOfWork(unitOfWork) {
+  // 1. DOMを生成
+  if (!fiber.dom) {
+    fiber.dom = createDom(unitOfWork);
+  }
+  if (fiber.parent) {
+    fiber.parent.dom.appendChild(fiber.dom);
+  }
+  // 2. Fiberノードを作成
+  const elements = fiber.props.children;
+  let index = 0;
+  let prevSibling = null;
+  while (index < elements.length) {
+    const element = elements[index];
+    const newFiber = {
+      type: element.type,
+      props: element.props,
+      parent: fiber,
+      dom: null,
+    };
+    if (index === 0) {
+      fiber.child = newFiber;
+    } else {
+      prevSibling.sibling = newFiber;
+    }
+    prevSibling = newFiber;
+    index++;
+  }
+  // 3. 次のFiberを返す
+  if (fiber.child) {
+    return fiber.child;
+  }
+  let nextFiber = fiber;
+  while (nextFiber) {
+    if (nextFiber.sibling) {
+      return nextFiber.sibling;
+    }
+    nextFiber = nextFiber.parent;
+  }
+}
+
+// ブラウザのアイドル時間にworkLoopを実行する
+requestIdleCallback(workLoop);
+
+// 自作Reactの本体
 const MyReact = {
   createElement,
   render,
 };
 
 export default MyReact;
-
-/* メモ
-// 1. jsxでコンポーネントを定義
-// function MyComponent() {
-//   return <h1 title="foo">Hello</h1>
-// }
-// 2. jsxコンポーネントがcreateElement関数で以下のように変換される
-const element = React.createElement("h1", { title: "foo" }, "Hello");
-// const element = {
-  //   type: "h1",
-  //   props: {
-  //     title: "foo",
-  //     children: "Hello",
-  //   },
-  // };
-      
-// const container = document.getElementById('root');
-// ReactDOM.render(<MyComponent />, container)
-// 3. render関数では以下のような処理を行っている
-// const container = document.getElementById("root");
-// const node = document.createElement(element.type);
-// node["title"] = element.props.title;
-// const text = document.createTextNode("");
-// text["nodeValue"] = element.props.children;
-// node.appendChild(text);
-// container.appendChild(node);
-*/

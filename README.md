@@ -1,4 +1,12 @@
 # build your own react
+### セットアップ
+```bash
+git clone 〜
+cd 〜
+npm i
+npm run dev
+```
+### プロジェクト構成
 
 ```
 ├── docs

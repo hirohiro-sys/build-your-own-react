@@ -96,10 +96,10 @@ function commitWork(fiber) {
   commitWork(fiber.sibling);
 }
 
-let nextUnitOfWork = null;
 let wipRoot = null;
 let currentRoot = null;
 let deletions = null;
+let nextUnitOfWork = null;
 function render(element, container) {
   wipRoot = {
     dom: container,
@@ -196,10 +196,8 @@ function reconcileChildren(wipFiber, elements) {
   }
 }
 
-// ブラウザのアイドル時間にworkLoopを実行する
 requestIdleCallback(workLoop);
 
-// 自作Reactの本体
 const MyReact = {
   createElement,
   render,

@@ -1,4 +1,4 @@
-# build your own react（in progress...）
+# build your own react
 
 ```
 ├── docs

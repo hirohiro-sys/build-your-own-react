@@ -159,9 +159,7 @@ function reconcileChildren(wipFiber, elements) {
 }
 ```
 
-3. commitRoot()
-
-実 DOM に反映する
+### 3. 実DOMにまとめて反映する
 
 ```js
 function commitRoot() {

@@ -1,21 +1,21 @@
 # 処理の流れ（追記中）
 
-以下の jsx をレンダリングしたいとする。
-
-vite の設定ファイルにより element にはすでに js コンパイル済みのオブジェクトが格納されている(はず)ので、render 関数から見ていく。
+### やりたいこと
+以下のjsxをレンダリングしたい。また、文言を変更したら更新されるようにしたい。
 
 ```jsx
 import MyReact from "./main.js";
 
+// viteの設定ファイル(vite.config.js)により、elementにはオブジェクト形式になったjsが入る
 const element = <h1 title="foo">Hello</h1>;
 
 const container = document.getElementById("root");
 MyReact.render(element, container);
 ```
 
-1. render()
+### 1. レンダリング開始
 
-レンダリング(再レンダリング含)のエントリーポイント
+レンダリング(再レンダリング含)のエントリーポイント。
 
 ```js
 let wipRoot = null;         // 作業中のルートを保持

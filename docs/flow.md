@@ -15,13 +15,13 @@ MyReact.render(element, container);
 
 1. render()
 
-レンダリングのエントリーポイント
+レンダリング(再レンダリング含)のエントリーポイント
 
 ```js
-let wipRoot = null;
-let currentRoot = null;
-let deletions = null;
-let nextUnitOfWork = null;
+let wipRoot = null;         // 作業中のルートを保持
+let currentRoot = null;     // 現在レンダリング済のルートを保持
+let deletions = null;       // 今回の作業で削除が必要なノードを保持
+let nextUnitOfWork = null;  // 次処理の単位を保持
 function render(element, container) {
   wipRoot = {
     dom: container,

@@ -35,19 +35,14 @@ function render(element, container) {
 }
 ```
 
-2. requestIdleCallback(workLoop)
+ブラウザがアイドル状態の時(ユーザー操作が終わって時間が余ってる時など)にFiberツリーの構築を進める。
 
-ブラウザがアイドル状態の時(ユーザー操作が終わって時間が余ってる時など)に描画を進める
 
 ```js
 requestIdleCallback(workLoop);
 ```
 
-以下 workLoop の実装。次の作業が存在し、時間があるなら処理をし続けている。
-
-ループが終了(作業が全て終わっている or 時間切れ)した場合は次のアイドル時間にまた作業をするための予約をする。
-
-Fiber ノードを全て構築したら実 DOM に反映させる関数(commitRoot)を実行
+Fiberツリーを全て構築したら、現在のFiberツリー(currentRoot)と更新予定のFiberツリー(wipRoot)の差分を実DOMに反映する。
 
 ```js
 function workLoop(deadline) {
@@ -60,6 +55,7 @@ function workLoop(deadline) {
   // 作業が終わったら次の作業をスケジュールする
   requestIdleCallback(workLoop);
 
+  // Fiberツリーを全て構築したらまとめて実DOMに反映
   if (!nextUnitOfWork && wipRoot) {
     commitRoot();
     wipRoot = null;
@@ -67,7 +63,8 @@ function workLoop(deadline) {
 }
 ```
 
-以下描画のメイン処理。ざっくりいうとレンダリング作業の 1 単位を行い、次の作業単位を返している
+### 2. Fiberツリーの構築
+Fiberを作成し、次の作業単位を返している。
 
 ```js
 function performUnitOfWork(fiber) {
